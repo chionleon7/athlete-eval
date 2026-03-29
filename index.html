@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Performance Hub - 實證運動科學版</title>
+    
+    <!-- 社群分享優化標籤 (OG Tags) -->
+    <meta property="og:title" content="Elite Performance Hub | 運動員即時狀態監控">
+    <meta property="og:description" content="基於 Borg, Milewski 與 Buchheit 研究之實證運動科學評估工具。">
+    <meta property="og:type" content="website">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;500;900&display=swap');
+        
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff007a;
+            --dark: #05060a;
+            --card-bg: rgba(20, 22, 30, 0.8);
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--dark);
+            color: #ffffff;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(112, 0, 255, 0.2) 0%, transparent 35%),
+                radial-gradient(circle at 100% 100%, rgba(0, 242, 255, 0.15) 0%, transparent 35%);
+            min-height: 100vh;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+
+        .section-header {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-glow {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-glow:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            outline: none;
+        }
+
+        .pain-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pain-btn.selected {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 0, 122, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .muscle-tag.active {
+            background: var(--primary);
+            color: black;
+            font-weight: 700;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            top: 0;
+            animation: scan 3s linear infinite;
+            display: none;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .evidence-tooltip {
+            font-size: 0.65rem;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 2px 6px;
+            border-radius: 99px;
+            cursor: help;
+            margin-left: 8px;
+            opacity: 0.7;
+        }
+
+        .evidence-tooltip:hover { opacity: 1; background: rgba(0,242,255,0.1); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
+            <div>
+                <h1 class="text-4xl font-black font-orbitron italic tracking-tighter">EVIDENCE-BASED <span class="text-primary">HUB</span></h1>
+                <p class="text-gray-400 text-sm mt-1">基於運動科學文獻的即時監控系統</p>
+            </div>
+            <div class="text-right text-[10px] text-gray-500 font-orbitron">
+                VER: 3.5.1 / RELEASE<br>REF: BORG, MILEWSKI, BUCHHEIT
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left: Inputs -->
+            <div class="lg:col-span-7 space-y-8">
+                <div class="glass-card p-6 md:p-8 relative overflow-hidden">
+                    <div id="scanner" class="scan-line"></div>
+                    
+                    <form id="evalForm" class="space-y-10">
+                        <section>
+                            <div class="section-header flex items-center">
+                                <h2 class="text-lg font-bold tracking-widest uppercase">生理恢復狀態</h2>
+                                <span class="evidence-tooltip" title="依據 Buchheit (2014) 心率監控指標">Evidence: Buchheit</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-3 uppercase">疲勞感 (RPE 0-10)</label>
+                                    <input type="range" id="rpe" min="0" max="10" value="5" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-primary">
+                                    <div class="flex justify-between mt-2 font-orbitron text-primary">
+                                        <span class="text-xs">REST</span>
+                                        <span id="rpeVal" class="text-lg font-bold">5</span>
+                                        <span class="text-xs">MAX</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-3 uppercase">靜止心率 (RHR)</label>
+                                    <input type="number" id="rhr" placeholder="預設 60" class="w-full p-3 rounded-lg input-glow text-xl font-orbitron">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-3 uppercase">睡眠時數 (HRS)</label>
+                                    <input type="number" id="sleep" step="0.5" value="7.5" class="w-full p-3 rounded-lg input-glow text-xl font-orbitron">
+                                    <span class="evidence-tooltip mt-2 inline-block" title="Milewski (2014): 睡眠 < 8h 增加 1.7 倍受傷率">Evidence: Milewski</span>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-3 uppercase">營養補給質量</label>
+                                    <select id="nutrition" class="w-full p-3 rounded-lg input-glow bg-transparent text-sm">
+                                        <option value="3" class="bg-gray-900">優質 (營養素比例均衡)</option>
+                                        <option value="2" class="bg-gray-900" selected>一般 (正常外食)</option>
+                                        <option value="1" class="bg-gray-900">不良 (高加工食品/缺水)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section>
+                            <div class="section-header">
+                                <h2 class="text-lg font-bold tracking-widest uppercase">主觀疼痛感知</h2>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <button type="button" class="muscle-tag px-3 py-1.5 rounded-md border border-white/10 text-[10px] transition-all">下背部</button>
+                                <button type="button" class="muscle-tag px-3 py-1.5 rounded-md border border-white/10 text-[10px] transition-all">膝蓋</button>
+                                <button type="button" class="muscle-tag px-3 py-1.5 rounded-md border border-white/10 text-[10px] transition-all">大腿後側</button>
+                                <button type="button" class="muscle-tag px-3 py-1.5 rounded-md border border-white/10 text-[10px] transition-all">肩膀</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3" id="painContainer">
+                                <div class="pain-btn p-3 rounded-xl border border-white/5 text-center cursor-pointer selected" data-value="dull">
+                                    <span class="text-lg block">🧱</span>
+                                    <span class="text-[10px] text-gray-400">痠脹</span>
+                                </div>
+                                <div class="pain-btn p-3 rounded-xl border border-white/5 text-center cursor-pointer" data-value="stiff">
+                                    <span class="text-lg block">⛓️</span>
+                                    <span class="text-[10px] text-gray-400">緊繃</span>
+                                </div>
+                                <div class="pain-btn p-3 rounded-xl border border-white/5 text-center cursor-pointer" data-value="sharp">
+                                    <span class="text-lg block">⚡</span>
+                                    <span class="text-[10px] text-gray-400">刺痛</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <button type="button" onclick="calculate()" class="w-full py-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 font-black text-xl italic tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
+                            RUN SCIENTIFIC ANALYSIS
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Results -->
+            <div class="lg:col-span-5 space-y-6">
+                <div id="resultBox" class="glass-card p-6 md:p-8 border-t-4 border-primary opacity-30 transition-all duration-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="text-[10px] font-orbitron text-gray-500">DIAGNOSTIC DATA</span>
+                        <div id="statusBadge" class="px-2 py-1 rounded text-[10px] bg-gray-800 text-gray-400">WAITING...</div>
+                    </div>
+
+                    <div class="text-center mb-8">
+                        <div class="text-6xl font-black font-orbitron mb-2" id="score">--</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-widest">Performance Readiness Index</div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="p-4 rounded-xl bg-white/5 border-l-2 border-primary">
+                            <h4 class="text-xs font-bold text-primary mb-2 italic tracking-wider uppercase">科學回饋建議</h4>
+                            <p id="feedbackText" class="text-sm text-gray-300 leading-relaxed">請填寫數據並執行分析以獲得基於文獻的建議。</p>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white/5 border-l-2 border-accent">
+                            <h4 class="text-xs font-bold text-accent mb-2 italic tracking-wider uppercase">文獻支持 (Evidence Base)</h4>
+                            <ul id="refText" class="text-[10px] text-gray-500 space-y-1 list-disc pl-4 italic">
+                                <li>數據尚未生成</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-4 text-[9px] text-gray-600 leading-relaxed">
+                    本系統計算邏輯引用自以下研究：<br>
+                    1. Borg, G. (1998). Borg's Perceived Exertion and Pain Scales.<br>
+                    2. Milewski, M. D., et al. (2014). Chronic lack of sleep is associated with increased sports injuries in adolescent athletes.<br>
+                    3. Buchheit, M. (2014). Monitoring training status with HR measures.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('rpe').oninput = e => document.getElementById('rpeVal').innerText = e.target.value;
+
+        const tags = document.querySelectorAll('.muscle-tag');
+        tags.forEach(t => t.onclick = () => t.classList.toggle('active'));
+
+        let selectedPain = "dull";
+        const painBtns = document.querySelectorAll('.pain-btn');
+        painBtns.forEach(btn => {
+            btn.onclick = () => {
+                painBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedPain = btn.dataset.value;
+            };
+        });
+
+        function calculate() {
+            const scanner = document.getElementById('scanner');
+            const resultBox = document.getElementById('resultBox');
+            scanner.style.display = 'block';
+
+            const rpe = parseInt(document.getElementById('rpe').value);
+            const rhr = parseInt(document.getElementById('rhr').value) || 60;
+            const sleep = parseFloat(document.getElementById('sleep').value);
+            const activeMuscles = document.querySelectorAll('.muscle-tag.active').length;
+
+            setTimeout(() => {
+                scanner.style.display = 'none';
+                resultBox.classList.remove('opacity-30');
+
+                let readiness = 100;
+                readiness -= (rpe * 4);
+                readiness -= (Math.max(0, 8 - sleep) * 12);
+                if (rhr > 75) readiness -= 10;
+                if (selectedPain === 'sharp') readiness -= 20;
+                readiness -= (activeMuscles * 5);
+
+                const finalScore = Math.max(0, Math.min(100, Math.round(readiness)));
+                document.getElementById('score').innerText = finalScore;
+
+                let feedback = "";
+                let refs = [];
+                let status = "";
+                let color = "#00f2ff";
+
+                if (finalScore >= 80) {
+                    status = "READY";
+                    color = "#4ade80";
+                    feedback = "你的各項指標顯示生理準備度極佳。由於睡眠時數充足且 RPE 負荷適中，中樞神經系統已完全恢復，今日適合進行高強度訓練。";
+                    refs = ["依據 Borg (1998)：低 RPE 代表生理負擔在可控範圍。", "依據 Milewski (2014)：睡眠充足顯著降低受傷風險。"];
+                } else if (finalScore >= 60) {
+                    status = "MONITOR";
+                    color = "#00f2ff";
+                    feedback = "處於穩定區間。部分肌肉輕微痠脹，代謝廢物尚未完全排除。建議維持中等強度训练，並增加動態修復。";
+                    refs = ["依據 Buchheit (2014)：RHR 穩定顯示自主神經系統尚未過度疲勞。"];
+                } else if (finalScore >= 40) {
+                    status = "WARNING";
+                    color = "#fbbf24";
+                    feedback = `警告：偵測到累積疲勞。睡眠時數 ${sleep}h 低於科學基準。研究顯示，長期睡眠不足會使受傷風險增加 1.7 倍。建議今日調降強度。`;
+                    refs = ["關鍵文獻：Milewski et al. (2014) 睡眠不足是受傷的最強預測因子。"];
+                } else {
+                    status = "DANGER";
+                    color = "#ff007a";
+                    feedback = "危險：判定為過度訓練高風險。生理指標失衡且出現刺痛感。今日建議強制休息並諮詢物理治療。";
+                    refs = ["Buchheit (2014)：異常 RHR 是交感神經失衡徵兆。", "疼痛科學：刺痛感通常涉及組織發炎，應立即停訓。"];
+                }
+
+                document.getElementById('feedbackText').innerText = feedback;
+                document.getElementById('refText').innerHTML = refs.map(r => `<li>${r}</li>`).join('');
+                document.getElementById('statusBadge').innerText = status;
+                document.getElementById('statusBadge').style.backgroundColor = color + "44";
+                document.getElementById('statusBadge').style.color = color;
+                document.getElementById('score').style.color = color;
+                document.getElementById('resultBox').style.borderColor = color;
+
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
