@@ -115,10 +115,10 @@
         <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
             <div>
                 <h1 class="text-4xl font-black font-orbitron italic tracking-tighter">EVIDENCE-BASED <span class="text-primary">HUB</span></h1>
-                <p class="text-gray-400 text-sm mt-1">基於運動科學文獻的即時監控系統</p>
+                <p class="text-gray-400 text-sm mt-1">基於運動科學文獻的即時監控系統 (繁體中文版)</p>
             </div>
             <div class="text-right text-[10px] text-gray-500 font-orbitron">
-                VER: 3.5.1 / RELEASE<br>REF: BORG, MILEWSKI, BUCHHEIT
+                VER: 3.5.2 / STABLE<br>REF: BORG, MILEWSKI, BUCHHEIT
             </div>
         </div>
 
@@ -146,7 +146,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs text-gray-400 mb-3 uppercase">靜止心率 (RHR)</label>
-                                    <input type="number" id="rhr" placeholder="預設 60" class="w-full p-3 rounded-lg input-glow text-xl font-orbitron">
+                                    <input type="number" id="rhr" placeholder="請輸入 RHR (如 60)" class="w-full p-3 rounded-lg input-glow text-xl font-orbitron">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-gray-400 mb-3 uppercase">睡眠時數 (HRS)</label>
@@ -156,9 +156,9 @@
                                 <div>
                                     <label class="block text-xs text-gray-400 mb-3 uppercase">營養補給質量</label>
                                     <select id="nutrition" class="w-full p-3 rounded-lg input-glow bg-transparent text-sm">
-                                        <option value="3" class="bg-gray-900">優質 (營養素比例均衡)</option>
-                                        <option value="2" class="bg-gray-900" selected>一般 (正常外食)</option>
-                                        <option value="1" class="bg-gray-900">不良 (高加工食品/缺水)</option>
+                                        <option value="3" class="bg-gray-900">優質 (營養素比例均衡、水分充足)</option>
+                                        <option value="2" class="bg-gray-900" selected>一般 (正常飲食、水分尚可)</option>
+                                        <option value="1" class="bg-gray-900">不良 (高加工食品、水分嚴重不足)</option>
                                     </select>
                                 </div>
                             </div>
@@ -175,7 +175,7 @@
                                 <button type="button" class="muscle-tag px-3 py-1.5 rounded-md border border-white/10 text-[10px] transition-all">肩膀</button>
                             </div>
                             <div class="grid grid-cols-3 gap-3" id="painContainer">
-                                <div class="pain-btn p-3 rounded-xl border border-white/5 text-center cursor-pointer selected" data-value="dull">
+                                <div class="pain-btn p-3 rounded-xl border border-white/5 text-center cursor-pointer" data-value="dull">
                                     <span class="text-lg block">🧱</span>
                                     <span class="text-[10px] text-gray-400">痠脹</span>
                                 </div>
@@ -188,10 +188,11 @@
                                     <span class="text-[10px] text-gray-400">刺痛</span>
                                 </div>
                             </div>
+                            <p class="text-[10px] text-gray-500 mt-2 italic text-center">* 若無特定疼痛感請勿選取</p>
                         </section>
 
                         <button type="button" onclick="calculate()" class="w-full py-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 font-black text-xl italic tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
-                            RUN SCIENTIFIC ANALYSIS
+                            執行科學化分析
                         </button>
                     </form>
                 </div>
@@ -207,13 +208,13 @@
 
                     <div class="text-center mb-8">
                         <div class="text-6xl font-black font-orbitron mb-2" id="score">--</div>
-                        <div class="text-xs text-gray-400 uppercase tracking-widest">Performance Readiness Index</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-widest">表現準備度指數 (PRI)</div>
                     </div>
 
                     <div class="space-y-6">
                         <div class="p-4 rounded-xl bg-white/5 border-l-2 border-primary">
                             <h4 class="text-xs font-bold text-primary mb-2 italic tracking-wider uppercase">科學回饋建議</h4>
-                            <p id="feedbackText" class="text-sm text-gray-300 leading-relaxed">請填寫數據並執行分析以獲得基於文獻的建議。</p>
+                            <p id="feedbackText" class="text-sm text-gray-300 leading-relaxed">請填寫數據並執行分析以獲得建議。</p>
                         </div>
 
                         <div class="p-4 rounded-xl bg-white/5 border-l-2 border-accent">
@@ -228,7 +229,7 @@
                 <div class="px-4 text-[9px] text-gray-600 leading-relaxed">
                     本系統計算邏輯引用自以下研究：<br>
                     1. Borg, G. (1998). Borg's Perceived Exertion and Pain Scales.<br>
-                    2. Milewski, M. D., et al. (2014). Chronic lack of sleep is associated with increased sports injuries in adolescent athletes.<br>
+                    2. Milewski, M. D., et al. (2014). Chronic lack of sleep is associated with increased sports injuries.<br>
                     3. Buchheit, M. (2014). Monitoring training status with HR measures.
                 </div>
             </div>
@@ -236,18 +237,24 @@
     </div>
 
     <script>
+        // UI 控制
         document.getElementById('rpe').oninput = e => document.getElementById('rpeVal').innerText = e.target.value;
 
         const tags = document.querySelectorAll('.muscle-tag');
         tags.forEach(t => t.onclick = () => t.classList.toggle('active'));
 
-        let selectedPain = "dull";
+        let selectedPain = null; // 預設不選取疼痛性質
         const painBtns = document.querySelectorAll('.pain-btn');
         painBtns.forEach(btn => {
             btn.onclick = () => {
-                painBtns.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedPain = btn.dataset.value;
+                if (btn.classList.contains('selected')) {
+                    btn.classList.remove('selected');
+                    selectedPain = null;
+                } else {
+                    painBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedPain = btn.dataset.value;
+                }
             };
         });
 
@@ -256,20 +263,45 @@
             const resultBox = document.getElementById('resultBox');
             scanner.style.display = 'block';
 
+            // 獲取數據
             const rpe = parseInt(document.getElementById('rpe').value);
-            const rhr = parseInt(document.getElementById('rhr').value) || 60;
+            const rhrInput = document.getElementById('rhr').value;
+            const rhr = rhrInput ? parseInt(rhrInput) : 60;
             const sleep = parseFloat(document.getElementById('sleep').value);
+            const nutrition = parseInt(document.getElementById('nutrition').value);
             const activeMuscles = document.querySelectorAll('.muscle-tag.active').length;
 
             setTimeout(() => {
                 scanner.style.display = 'none';
                 resultBox.classList.remove('opacity-30');
 
+                // --- 邏輯引擎核心 ---
                 let readiness = 100;
+                
+                // 1. RPE 扣分 (權重 4)
                 readiness -= (rpe * 4);
-                readiness -= (Math.max(0, 8 - sleep) * 12);
-                if (rhr > 75) readiness -= 10;
-                if (selectedPain === 'sharp') readiness -= 20;
+                
+                // 2. 睡眠扣分 (權重加強：低於 8 小時即開始影響，低於 7 小時嚴重警告)
+                if (sleep < 8) {
+                    readiness -= (8 - sleep) * 15; 
+                }
+
+                // 3. 靜止心率影響 (大於平常基準 10bpm 以上則顯著扣分)
+                if (rhr > 75) {
+                    readiness -= 15;
+                } else if (rhr < 55) {
+                    readiness += 5; // 優良恢復
+                }
+
+                // 4. 營養補給影響
+                if (nutrition === 1) readiness -= 10;
+                if (nutrition === 3) readiness += 5;
+
+                // 5. 疼痛性質影響 (僅當有選取時)
+                if (selectedPain === 'sharp') readiness -= 25;
+                if (selectedPain === 'stiff' || selectedPain === 'dull') readiness -= 10;
+                
+                // 6. 部位數量影響
                 readiness -= (activeMuscles * 5);
 
                 const finalScore = Math.max(0, Math.min(100, Math.round(readiness)));
@@ -280,28 +312,49 @@
                 let status = "";
                 let color = "#00f2ff";
 
+                // --- 根據分數與選取狀態生成回饋 ---
                 if (finalScore >= 80) {
-                    status = "READY";
+                    status = "良好 (READY)";
                     color = "#4ade80";
-                    feedback = "你的各項指標顯示生理準備度極佳。由於睡眠時數充足且 RPE 負荷適中，中樞神經系統已完全恢復，今日適合進行高強度訓練。";
-                    refs = ["依據 Borg (1998)：低 RPE 代表生理負擔在可控範圍。", "依據 Milewski (2014)：睡眠充足顯著降低受傷風險。"];
-                } else if (finalScore >= 60) {
-                    status = "MONITOR";
+                    feedback = "你的生理準備度極佳。";
+                    if (sleep >= 8) feedback += "充足的睡眠為你提供了優質的神經恢復。";
+                    if (nutrition === 3) feedback += "高品質的營養補給進一步優化了肌肉修復環境。";
+                    feedback += "今日適合進行高強度課表。";
+                    
+                    refs = ["依據 Borg (1998)：低 RPE 代表生理負擔在可控範圍。", "依據 Milewski (2014)：睡眠充足（≥8h）顯著降低受傷風險。"];
+                } 
+                else if (finalScore >= 60) {
+                    status = "監控 (MONITOR)";
                     color = "#00f2ff";
-                    feedback = "處於穩定區間。部分肌肉輕微痠脹，代謝廢物尚未完全排除。建議維持中等強度训练，並增加動態修復。";
-                    refs = ["依據 Buchheit (2014)：RHR 穩定顯示自主神經系統尚未過度疲勞。"];
-                } else if (finalScore >= 40) {
-                    status = "WARNING";
+                    feedback = "處於穩定的訓練區間。";
+                    if (rhr > 70) feedback += "靜止心率稍高，暗示身體正在進行輕微修復。";
+                    if (selectedPain === 'dull' || selectedPain === 'stiff') feedback += "感測到局部緊繃或痠脹，這是代謝產物的堆積。";
+                    feedback += "建議維持中等強度訓練，並配合動態伸展。";
+                    
+                    refs = ["依據 Buchheit (2014)：心率波動反映了自主神經系統的修復負荷。"];
+                } 
+                else if (finalScore >= 40) {
+                    status = "警示 (WARNING)";
                     color = "#fbbf24";
-                    feedback = `警告：偵測到累積疲勞。睡眠時數 ${sleep}h 低於科學基準。研究顯示，長期睡眠不足會使受傷風險增加 1.7 倍。建議今日調降強度。`;
-                    refs = ["關鍵文獻：Milewski et al. (2014) 睡眠不足是受傷的最強預測因子。"];
-                } else {
-                    status = "DANGER";
+                    feedback = "身體出現明顯疲勞跡象。";
+                    if (sleep < 7) feedback += `睡眠時數 (${sleep}h) 嚴重不足，已觸發受傷高風險閾值。`;
+                    if (nutrition === 1) feedback += "營養補給質量不佳，會拖慢組織修復速度。";
+                    feedback += "建議今日調降 50% 訓練量，專注於基礎動作與恢復。";
+                    
+                    refs = ["Milewski et al. (2014)：睡眠不足是運動損傷的最強預測因子。"];
+                } 
+                else {
+                    status = "危險 (DANGER)";
                     color = "#ff007a";
-                    feedback = "危險：判定為過度訓練高風險。生理指標失衡且出現刺痛感。今日建議強制休息並諮詢物理治療。";
-                    refs = ["Buchheit (2014)：異常 RHR 是交感神經失衡徵兆。", "疼痛科學：刺痛感通常涉及組織發炎，應立即停訓。"];
+                    feedback = "危險：系統判定過度訓練風險極高。";
+                    if (selectedPain === 'sharp') feedback += "【嚴重警告】你選取了「刺痛感」，這通常代表神經受壓或組織發炎。";
+                    if (rhr > 80) feedback += "高亢的靜止心率顯示中樞神經系統過載。";
+                    feedback += "今日請強制休息，並諮詢專業醫療人員或物理治療師。";
+                    
+                    refs = ["Buchheit (2014)：異常 RHR 是交感神經系統失衡徵兆。", "疼痛科學：刺痛感是組織損傷的警告信號，不應帶傷訓練。"];
                 }
 
+                // 更新 UI
                 document.getElementById('feedbackText').innerText = feedback;
                 document.getElementById('refText').innerHTML = refs.map(r => `<li>${r}</li>`).join('');
                 document.getElementById('statusBadge').innerText = status;
